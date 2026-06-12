@@ -1,0 +1,122 @@
+DOCUMENTACAO INSTALACAO PRISMA
+
+https://www.prisma.io/docs/prisma-orm/quickstart/mysql
+
+### INICIALIZA O TYPESCRIPT 
+
+    - O comando abaixo cria um arquivo tsconfig.json:
+
+    npm install typescript tsx @types/node --save-dev
+    npx tsc --init
+
+    npm install prisma @types/node --save-dev
+    npm install @prisma/client @prisma/adapter-mariadb dotenv
+$$
+
+## ATUALIZAR tsconfig.json PARA QUE ACEITE ECMA
+
+    {
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "target": "ES2023",
+        "strict": true,
+        "esModuleInterop": true,
+    }
+    }
+
+### ATUALIZAR package.json PARA 
+
+"type": "module"
+$$
+
+### CRIA A MIGRATION 
+
+    - Cria migration
+    npx prisma migrate dev --name init
+
+    - Cria pasta generated
+    npx prisma generate
+$$
+
+### PEGA ATUALIZAÇÕES FEITAS NO BANCO
+
+npx prisma db pull
+$$
+
+################################
+$$ CONTEÚDO VARIÁVEL AUX PROD $$ 
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Tabela de Veículos (Controle de Estoque e Catálogo)
+model Veiculo {
+  id            Int      @id @default(autoincrement())
+  tipo          String   // 'CARRO' ou 'MOTO'
+  marca         String   // Ex: Toyota, Honda
+  modelo        String   // Ex: Corolla, Civic
+  anoFabricacao Int      @map("ano_fabricacao")
+  anoModelo     Int      @map("ano_modelo")
+  preco         Decimal  @db.Decimal(12, 2)
+  placa         String   @unique // Evita cadastrar o mesmo veículo duas vezes
+  cor           String
+  quilometragem Int
+  status        String   @default("DISPONIVEL") // 'DISPONIVEL', 'VENDIDO', 'RESERVADO'
+  dataCadastro  DateTime @default(now()) @map("data_cadastro")
+  dataAlteracao DateTime @updatedAt @map("data_alteracao")
+  vendas        Venda[]  // Relacionamento com as Vendas
+
+  @@map("veiculos")
+}
+
+// 2. Tabela de Vendedores (Para cálculo de comissão)
+model Vendedor {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  email        String   @unique
+  cpf          String   @unique
+  telefone     String
+  ativo        Boolean  @default(true)
+  dataCadastro DateTime @default(now()) @map("data_cadastro")
+  vendas       Venda[]  // Relacionamento com as Vendas
+
+  @@map("vendedores")
+}
+
+// 3. Tabela de Clientes (Dados para o registro fiscal/histórico)
+model Cliente {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  cpfCnpj      String   @unique @map("cpf_cnpj")
+  email        String   @unique
+  telefone     String
+  dataCadastro DateTime @default(now()) @map("data_cadastro")
+  vendas       Venda[]  // Relacionamento com as Vendas
+
+  @@map("clientes")
+}
+
+// 4. A Mágica do Sistema: Tabela de Vendas (Une tudo e calcula comissão)
+model Venda {
+  id             Int      @id @default(autoincrement())
+  veiculoId      Int      @unique @map("veiculo_id") // Cada veículo só pode ser vendido uma vez
+  vendedorId     Int      @map("vendedor_id")
+  clienteId      Int      @map("cliente_id")
+  valorVenda     Decimal  @db.Decimal(12, 2) @map("valor_venda")
+  valorComissao  Decimal  @db.Decimal(12, 2) @map("valor_comissao") // 15% Calculado no Backend
+  dataVenda      DateTime @default(now()) @map("data_venda")
+
+  // Relacionamentos (Chaves Estrangeiras)
+  veiculo        Veiculo  @relation(fields: [veiculoId], references: [id])
+  vendedor       Vendedor @relation(fields: [vendedorId], references: [id])
+  cliente        Cliente  @relation(fields: [clienteId], references: [id])
+
+  @@map("vendas")
+}

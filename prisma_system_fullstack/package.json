@@ -1,0 +1,29 @@
+{
+  "name": "prisma_system_fullstack",
+  "version": "1.0.0",
+  "description": "Sistema Full Stack com Prisma ORM",
+  "license": "ISC",
+  "author": "Guilherme G. Simas",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "prisma": "^7.8.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.14"
+  }
+}

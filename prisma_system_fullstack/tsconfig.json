@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2023",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+  }
+}
